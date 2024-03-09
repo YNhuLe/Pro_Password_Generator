@@ -41,15 +41,38 @@ def save():
     if len(website) == 0 or len(password) == 0:
         messagebox.showwarning(title='Oop', message="you can not leave the field empty!!!!")
     else:
-        with open("data.json", "r") as data_file:
-            data = json.load(data_file)  # open data from the data_file
-            data.update(new_data)  # update data in side the data just loaded with new_data
 
-        with open("data.json", "w") as data_file:
-            json.dump(data, data_file, indent=4)
+        try:
+            with open("data.json", "r") as data_file:
+                data = json.load(data_file)  # open data from the data_file
 
+        except FileNotFoundError:
+            with open("data.json", "w") as data_file:
+                json.dump(new_data, data_file, indent=4)
+        else:
+            # update data with new_data
+            data.update(new_data)
+            with open("data.json", "w") as data_file:
+                json.dump(data, data_file, indent=4)
+        finally:
             website_entry.delete(0, END)
             password_entry.delete(0, END)
+
+
+# ---------------------------FIND PASSWORD---------------------------------#
+def find_password():
+    website = website_entry.get()
+    try:
+        with open("data.json", "r") as data_file:
+            data = json.load(data_file)
+    except FileNotFoundError:
+        messagebox.showwarning(title='Error', message="No Data File Found. ")
+
+        if website in data:
+            messagebox.showinfo(title=website,
+                                message=f"Email: {data[website]['email']} \nPassword: {data[website]['password']}")
+        else:
+            messagebox.showwarning(title='Not found', message=f"The website '{website}' not exist")
 
 
 # ---------------------------- UI SETUP ------------------------------- #
@@ -73,8 +96,8 @@ password_label = Label(text="Password: ")
 password_label.grid(row=3, column=0)
 
 # Entry
-website_entry = Entry(width=35)
-website_entry.grid(padx=5, pady=5, row=1, column=1, columnspan=2)
+website_entry = Entry(width=21)
+website_entry.grid(padx=5, pady=5, row=1, column=1)
 website_entry.focus()
 
 email_entry = Entry(width=35)
@@ -85,6 +108,9 @@ password_entry.grid(row=3, column=1)
 
 generate_button = Button(text="Generate password", command=generate_password)
 generate_button.grid(padx=5, pady=5, row=3, column=2)
+
+search_button = Button(text='Search', command=find_password, width=15)
+search_button.grid(row=1, column=2)
 
 add_button = Button(text="Add", width=36, command=save)
 add_button.grid(padx=5, pady=5, row=4, column=1, columnspan=2)
